@@ -1,0 +1,611 @@
+--// PAINEL RP - PANTERA NEGRA (LocalScript)
+--// Local: StarterPlayer > StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TextChatService = game:GetService("TextChatService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+--------------------------------------------------------------------
+-- CONFIGURAÇÃO
+--------------------------------------------------------------------
+local COOLDOWN = 3
+local PREFIXO_FALA = "———``"
+local PLACEHOLDER = "{NOME_DO_PERSONAGEM}"
+
+local FALAS = {
+	"Wakanda para sempre!",
+	"Vocês estão em território de Wakanda.",
+	"Eu sou o Pantera Negra.",
+	"Não permitirei que machuquem meu povo.",
+	"Vocês escolheram a pessoa errada para enfrentar.",
+	"Wakanda estará protegida.",
+	"Minha nação não será destruída.",
+	"Eu não vou recuar.",
+	"A batalha termina quando eu decidir.",
+	"Vocês não sabem do que sou capaz.",
+}
+
+local ACOES = {
+	{"Golpe de Garras", ". Pantera Negra avança rapidamente e desfere um golpe de garras contra {NOME_DO_PERSONAGEM} ."},
+	{"Sequência de Garras", ". Pantera Negra desfere uma rápida sequência de golpes com suas garras contra {NOME_DO_PERSONAGEM} ."},
+	{"Investida do Pantera", ". Pantera Negra corre em alta velocidade e atinge {NOME_DO_PERSONAGEM} com uma poderosa investida ."},
+	{"Salto do Pantera", ". Pantera Negra salta sobre {NOME_DO_PERSONAGEM} e o derruba com um ataque rápido ."},
+	{"Ataque pelas Costas", ". Pantera Negra desaparece da visão de {NOME_DO_PERSONAGEM}, surge atrás dele e desfere um golpe ."},
+	{"Chute Poderoso", ". Pantera Negra gira o corpo e desfere um poderoso chute contra {NOME_DO_PERSONAGEM} ."},
+	{"Arremesso", ". Pantera Negra agarra {NOME_DO_PERSONAGEM} e o arremessa para longe ."},
+	{"Bloqueio de Garras", ". Pantera Negra cruza as garras diante do corpo e bloqueia o ataque recebido ."},
+	{"Contra-Ataque", ". Pantera Negra bloqueia o golpe de {NOME_DO_PERSONAGEM} e imediatamente contra-ataca com suas garras ."},
+	{"Explosão Cinética", ". Pantera Negra absorve a energia dos ataques recebidos e libera toda a energia acumulada ao redor de si ."},
+}
+
+local PODERES = {
+	{"Força Aprimorada", ". Pantera Negra utiliza sua força sobre-humana para aumentar a potência de seus golpes ."},
+	{"Velocidade Aprimorada", ". Pantera Negra se movimenta em alta velocidade, desviando rapidamente dos ataques ."},
+	{"Agilidade Felina", ". Pantera Negra realiza movimentos acrobáticos e saltos com extrema agilidade ."},
+	{"Sentidos Aprimorados", ". Pantera Negra utiliza seus sentidos aguçados para perceber movimentos e ameaças ao seu redor ."},
+	{"Garras de Vibranium", ". Pantera Negra utiliza suas garras de vibranium para realizar ataques rápidos e precisos ."},
+	{"Traje de Vibranium", ". Pantera Negra utiliza seu traje de vibranium para absorver impactos e proteger seu corpo ."},
+	{"Absorção Cinética", ". O traje de Pantera Negra absorve a energia dos impactos recebidos ."},
+	{"Liberação Cinética", ". Pantera Negra libera a energia cinética acumulada pelo traje em uma poderosa descarga ."},
+	{"Camuflagem", ". Pantera Negra utiliza o ambiente ao seu redor para se aproximar silenciosamente de seu alvo ."},
+}
+
+local MOVIMENTOS = {
+	{"Corrida Felina", ". Pantera Negra corre em direção ao alvo utilizando sua velocidade e agilidade ."},
+	{"Salto Acrobático", ". Pantera Negra salta por cima do obstáculo e aterrissa em posição de combate ."},
+	{"Esquiva Felina", ". Pantera Negra se move rapidamente para o lado, desviando do ataque ."},
+	{"Aproximação Silenciosa", ". Pantera Negra se aproxima silenciosamente de {NOME_DO_PERSONAGEM} sem chamar atenção ."},
+	{"Ataque Aéreo", ". Pantera Negra salta no ar e desce rapidamente em direção a {NOME_DO_PERSONAGEM} ."},
+}
+
+local FINAIS = {
+	{"Investida Final", ". Pantera Negra concentra sua força e avança contra {NOME_DO_PERSONAGEM}, derrubando-o com um poderoso golpe ."},
+	{"Explosão Cinética Total", ". Pantera Negra libera toda a energia cinética acumulada em seu traje, lançando {NOME_DO_PERSONAGEM} para longe ."},
+	{"Ataque Supremo", ". Pantera Negra desfere uma sequência extremamente rápida de golpes contra {NOME_DO_PERSONAGEM} ."},
+	{"Domínio do Pantera", ". Pantera Negra imobiliza {NOME_DO_PERSONAGEM} e mantém suas garras próximas ao alvo ."},
+	{"Queda Final", ". Pantera Negra salta sobre {NOME_DO_PERSONAGEM} e o derruba com um poderoso impacto ."},
+	{"Desarme", ". Pantera Negra avança contra {NOME_DO_PERSONAGEM} e remove suas armas e equipamentos ."},
+	{"Fim da Batalha", ". Pantera Negra desfere um último golpe contra {NOME_DO_PERSONAGEM}, fazendo-o cair ao chão ."},
+}
+
+--------------------------------------------------------------------
+-- CORES
+--------------------------------------------------------------------
+local COR_FUNDO = Color3.fromRGB(16, 13, 24)
+local COR_CABECALHO = Color3.fromRGB(28, 20, 46)
+local COR_CAMPO = Color3.fromRGB(30, 26, 44)
+local COR_BOTAO = Color3.fromRGB(44, 36, 70)
+local COR_SECAO = Color3.fromRGB(70, 44, 120)
+local COR_DESTAQUE = Color3.fromRGB(150, 100, 235)
+local COR_TEXTO = Color3.fromRGB(230, 230, 240)
+local COR_TEXTO_FRACO = Color3.fromRGB(150, 150, 170)
+local COR_AVISO = Color3.fromRGB(255, 120, 120)
+local COR_BLOQUEADO = Color3.fromRGB(34, 32, 42)
+
+--------------------------------------------------------------------
+-- UTILIDADES
+--------------------------------------------------------------------
+local function criar(classe, props, pai)
+	local obj = Instance.new(classe)
+	for k, v in pairs(props) do
+		obj[k] = v
+	end
+	if pai then
+		obj.Parent = pai
+	end
+	return obj
+end
+
+local function arredondar(obj, raio)
+	criar("UICorner", {CornerRadius = UDim.new(0, raio)}, obj)
+end
+
+local function viewport()
+	local cam = workspace.CurrentCamera
+	if cam then
+		return cam.ViewportSize
+	end
+	return Vector2.new(400, 700)
+end
+
+local function limitar(obj, x, y)
+	local vp = viewport()
+	local s = obj.AbsoluteSize
+	return math.clamp(x, 0, math.max(0, vp.X - s.X)), math.clamp(y, 0, math.max(0, vp.Y - s.Y))
+end
+
+local function trim(s)
+	return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
+end
+
+local function precisaNome(texto)
+	return string.find(texto, PLACEHOLDER, 1, true) ~= nil
+end
+
+--------------------------------------------------------------------
+-- ENVIO PARA O CHAT (TextChatService ou chat legado)
+--------------------------------------------------------------------
+local function enviarNoChat(mensagem)
+	if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		local canais = TextChatService:WaitForChild("TextChannels", 5)
+		local canal = canais and canais:WaitForChild("RBXGeneral", 5)
+		if canal then
+			canal:SendAsync(mensagem)
+		else
+			warn("[PanteraNegra] Canal RBXGeneral não encontrado.")
+		end
+	else
+		local eventos = ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents", 5)
+		local say = eventos and eventos:WaitForChild("SayMessageRequest", 5)
+		if say then
+			say:FireServer(mensagem, "All")
+		else
+			warn("[PanteraNegra] SayMessageRequest não encontrado.")
+		end
+	end
+end
+
+--------------------------------------------------------------------
+-- INTERFACE
+--------------------------------------------------------------------
+local gui = criar("ScreenGui", {
+	Name = "PanteraNegraRP",
+	ResetOnSpawn = false,
+	IgnoreGuiInset = true,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	DisplayOrder = 50,
+}, playerGui)
+
+-- Painel (começa fechado)
+local painel = criar("Frame", {
+	Name = "Painel",
+	BackgroundColor3 = COR_FUNDO,
+	BorderSizePixel = 0,
+	Visible = false,
+	Active = true,
+}, gui)
+arredondar(painel, 12)
+criar("UIStroke", {Color = COR_DESTAQUE, Thickness = 1.5}, painel)
+
+local cabecalho = criar("Frame", {
+	Name = "Cabecalho",
+	BackgroundColor3 = COR_CABECALHO,
+	BorderSizePixel = 0,
+	Size = UDim2.new(1, 0, 0, 38),
+}, painel)
+arredondar(cabecalho, 12)
+
+criar("TextLabel", {
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(12, 0),
+	Size = UDim2.new(1, -56, 1, 0),
+	Font = Enum.Font.GothamBold,
+	Text = "🐈‍⬛ PANTERA NEGRA",
+	TextColor3 = COR_TEXTO,
+	TextSize = 15,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, cabecalho)
+
+local btnFechar = criar("TextButton", {
+	BackgroundColor3 = COR_BOTAO,
+	Position = UDim2.new(1, -36, 0, 5),
+	Size = UDim2.fromOffset(28, 28),
+	Font = Enum.Font.GothamBold,
+	Text = "✕",
+	TextColor3 = COR_TEXTO,
+	TextSize = 14,
+	AutoButtonColor = true,
+}, cabecalho)
+arredondar(btnFechar, 8)
+
+local campoNome = criar("TextBox", {
+	Name = "CampoNome",
+	BackgroundColor3 = COR_CAMPO,
+	Position = UDim2.fromOffset(8, 44),
+	Size = UDim2.new(1, -16, 0, 32),
+	Font = Enum.Font.Gotham,
+	PlaceholderText = "Nome do personagem",
+	PlaceholderColor3 = COR_TEXTO_FRACO,
+	Text = "",
+	TextColor3 = COR_TEXTO,
+	TextSize = 14,
+	ClearTextOnFocus = false,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, painel)
+arredondar(campoNome, 8)
+criar("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10)}, campoNome)
+
+local status = criar("TextLabel", {
+	Name = "Status",
+	BackgroundTransparency = 1,
+	Position = UDim2.fromOffset(10, 78),
+	Size = UDim2.new(1, -20, 0, 18),
+	Font = Enum.Font.Gotham,
+	Text = "✅ Pronto para enviar",
+	TextColor3 = COR_TEXTO_FRACO,
+	TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+}, painel)
+
+local rolagem = criar("ScrollingFrame", {
+	Name = "Rolagem",
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	Position = UDim2.fromOffset(6, 100),
+	Size = UDim2.new(1, -12, 1, -106),
+	CanvasSize = UDim2.new(0, 0, 0, 0),
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	ScrollBarThickness = 4,
+	ScrollBarImageColor3 = COR_DESTAQUE,
+	ScrollingDirection = Enum.ScrollingDirection.Y,
+}, painel)
+criar("UIListLayout", {
+	Padding = UDim.new(0, 6),
+	SortOrder = Enum.SortOrder.LayoutOrder,
+}, rolagem)
+criar("UIPadding", {PaddingRight = UDim.new(0, 6), PaddingBottom = UDim.new(0, 6)}, rolagem)
+
+-- Botão flutuante 🐈‍⬛
+local botao = criar("TextButton", {
+	Name = "BotaoFlutuante",
+	BackgroundColor3 = COR_CABECALHO,
+	Size = UDim2.fromOffset(54, 54),
+	Position = UDim2.fromOffset(12, math.floor(viewport().Y * 0.4)),
+	Font = Enum.Font.GothamBold,
+	Text = "🐈‍⬛",
+	TextSize = 28,
+	TextColor3 = COR_TEXTO,
+	AutoButtonColor = false,
+	ZIndex = 20,
+}, gui)
+criar("UICorner", {CornerRadius = UDim.new(1, 0)}, botao)
+criar("UIStroke", {Color = COR_DESTAQUE, Thickness = 2}, botao)
+
+--------------------------------------------------------------------
+-- ARRASTAR (toque e mouse)
+--------------------------------------------------------------------
+local function tornarArrastavel(alca, alvo, aoTocar)
+	local arrastando = false
+	local moveu = false
+	local entrada = nil
+	local inicioToque = Vector3.zero
+	local inicioAlvo = Vector2.zero
+
+	alca.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch then
+			arrastando = true
+			moveu = false
+			entrada = input
+			inicioToque = input.Position
+			inicioAlvo = alvo.AbsolutePosition
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if not arrastando then
+			return
+		end
+		local valido = input.UserInputType == Enum.UserInputType.MouseMovement
+			or (input.UserInputType == Enum.UserInputType.Touch and input == entrada)
+		if not valido then
+			return
+		end
+		local delta = input.Position - inicioToque
+		if delta.Magnitude > 8 then
+			moveu = true
+		end
+		if moveu then
+			local x, y = limitar(alvo, inicioAlvo.X + delta.X, inicioAlvo.Y + delta.Y)
+			alvo.Position = UDim2.fromOffset(x, y)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if not arrastando then
+			return
+		end
+		if input == entrada or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			arrastando = false
+			if not moveu and aoTocar then
+				aoTocar()
+			end
+		end
+	end)
+end
+
+--------------------------------------------------------------------
+-- ABRIR / FECHAR
+--------------------------------------------------------------------
+local primeiraAbertura = true
+
+local function ajustarPainel()
+	local vp = viewport()
+	local w = math.min(330, vp.X - 16)
+	local h = math.min(440, vp.Y - 90)
+	painel.Size = UDim2.fromOffset(w, h)
+	if primeiraAbertura then
+		primeiraAbertura = false
+		painel.Position = UDim2.fromOffset(math.floor((vp.X - w) / 2), math.max(40, math.floor((vp.Y - h) / 2)))
+	end
+	local x, y = limitar(painel, painel.AbsolutePosition.X, painel.AbsolutePosition.Y)
+	if painel.AbsolutePosition.X ~= x or painel.AbsolutePosition.Y ~= y then
+		painel.Position = UDim2.fromOffset(x, y)
+	end
+end
+
+local function alternarPainel()
+	if painel.Visible then
+		painel.Visible = false
+	else
+		ajustarPainel()
+		painel.Visible = true
+		task.defer(ajustarPainel)
+	end
+end
+
+tornarArrastavel(botao, botao, alternarPainel)
+tornarArrastavel(cabecalho, painel, nil)
+btnFechar.Activated:Connect(function()
+	painel.Visible = false
+end)
+
+--------------------------------------------------------------------
+-- SISTEMA DE ENVIO COM PAUSA DE 3 SEGUNDOS
+--------------------------------------------------------------------
+local ocupado = false
+local botoesEnvio = {}
+local tokenStatus = 0
+
+local function definirStatus(texto, cor)
+	tokenStatus += 1
+	status.Text = texto
+	status.TextColor3 = cor or COR_TEXTO_FRACO
+	return tokenStatus
+end
+
+local function atualizarBotoes()
+	for _, item in ipairs(botoesEnvio) do
+		if ocupado then
+			item.botao.BackgroundColor3 = COR_BLOQUEADO
+			item.botao.TextTransparency = 0.5
+		else
+			item.botao.BackgroundColor3 = item.corBase
+			item.botao.TextTransparency = 0
+		end
+	end
+end
+
+local function enviar(mensagem)
+	if ocupado then
+		definirStatus("⏳ Aguarde o intervalo para enviar outra", COR_AVISO)
+		return false
+	end
+
+	ocupado = true
+	atualizarBotoes()
+
+	task.spawn(function()
+		local ok, err = pcall(enviarNoChat, mensagem)
+		if not ok then
+			warn("[PanteraNegra] Falha ao enviar: " .. tostring(err))
+		end
+	end)
+
+	task.spawn(function()
+		local inicio = os.clock()
+		local meuToken = definirStatus("⏳ Aguarde " .. COOLDOWN .. "s...", COR_TEXTO_FRACO)
+		while true do
+			local restante = COOLDOWN - (os.clock() - inicio)
+			if restante <= 0 then
+				break
+			end
+			if tokenStatus == meuToken or string.sub(status.Text, 1, 1) == "⏳" then
+				status.Text = string.format("⏳ Aguarde %.1fs...", restante)
+				status.TextColor3 = COR_TEXTO_FRACO
+				meuToken = tokenStatus
+			end
+			task.wait(0.1)
+		end
+		ocupado = false
+		atualizarBotoes()
+		definirStatus("✅ Pronto para enviar", COR_TEXTO_FRACO)
+	end)
+
+	return true
+end
+
+local function mostrarAviso(texto)
+	local meu = definirStatus(texto, COR_AVISO)
+	task.delay(2, function()
+		if tokenStatus == meu then
+			definirStatus(ocupado and "⏳ Aguarde..." or "✅ Pronto para enviar", COR_TEXTO_FRACO)
+		end
+	end)
+end
+
+--------------------------------------------------------------------
+-- CONSTRUÇÃO DAS CATEGORIAS
+--------------------------------------------------------------------
+local ordemSecao = 0
+
+local function criarSecao(titulo, aberta)
+	ordemSecao += 1
+
+	local envoltorio = criar("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = ordemSecao,
+	}, rolagem)
+	criar("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, envoltorio)
+
+	local cab = criar("TextButton", {
+		BackgroundColor3 = COR_SECAO,
+		Size = UDim2.new(1, 0, 0, 36),
+		Font = Enum.Font.GothamBold,
+		Text = (aberta and "▼ " or "▶ ") .. titulo,
+		TextColor3 = COR_TEXTO,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = 1,
+	}, envoltorio)
+	arredondar(cab, 8)
+	criar("UIPadding", {PaddingLeft = UDim.new(0, 10)}, cab)
+
+	local conteudo = criar("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Visible = aberta,
+		LayoutOrder = 2,
+	}, envoltorio)
+	criar("UIListLayout", {Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder}, conteudo)
+
+	cab.Activated:Connect(function()
+		conteudo.Visible = not conteudo.Visible
+		cab.Text = (conteudo.Visible and "▼ " or "▶ ") .. titulo
+	end)
+
+	return conteudo
+end
+
+local function criarBotaoEnvio(pai, texto, ordem, aoClicar)
+	local b = criar("TextButton", {
+		BackgroundColor3 = COR_BOTAO,
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Font = Enum.Font.Gotham,
+		Text = texto,
+		TextColor3 = COR_TEXTO,
+		TextSize = 13,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = ordem,
+		AutoButtonColor = true,
+	}, pai)
+	arredondar(b, 8)
+	criar("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 10),
+		PaddingTop = UDim.new(0, 9),
+		PaddingBottom = UDim.new(0, 9),
+	}, b)
+	table.insert(botoesEnvio, {botao = b, corBase = COR_BOTAO})
+	b.Activated:Connect(aoClicar)
+	return b
+end
+
+local function listaDeAcoes(secao, lista)
+	for i, item in ipairs(lista) do
+		local titulo, modelo = item[1], item[2]
+		criarBotaoEnvio(secao, titulo, i, function()
+			local texto = modelo
+			if precisaNome(modelo) then
+				local nome = trim(campoNome.Text)
+				if nome == "" then
+					mostrarAviso("⚠️ Digite o nome do personagem")
+					return
+				end
+				texto = string.gsub(modelo, PLACEHOLDER, function()
+					return nome
+				end)
+			end
+			enviar(texto)
+		end)
+	end
+end
+
+-- 1) Fala Personalizada
+do
+	local secao = criarSecao("💬 Fala Personalizada", true)
+
+	local campoFala = criar("TextBox", {
+		BackgroundColor3 = COR_CAMPO,
+		Size = UDim2.new(1, 0, 0, 38),
+		Font = Enum.Font.Gotham,
+		PlaceholderText = "Digite sua fala...",
+		PlaceholderColor3 = COR_TEXTO_FRACO,
+		Text = "",
+		TextColor3 = COR_TEXTO,
+		TextSize = 14,
+		ClearTextOnFocus = false,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = 1,
+	}, secao)
+	arredondar(campoFala, 8)
+	criar("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10)}, campoFala)
+
+	local btnEnviar = criar("TextButton", {
+		BackgroundColor3 = COR_DESTAQUE,
+		Size = UDim2.new(1, 0, 0, 36),
+		Font = Enum.Font.GothamBold,
+		Text = "ENVIAR",
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextSize = 14,
+		LayoutOrder = 2,
+		AutoButtonColor = true,
+	}, secao)
+	arredondar(btnEnviar, 8)
+	table.insert(botoesEnvio, {botao = btnEnviar, corBase = COR_DESTAQUE})
+
+	btnEnviar.Activated:Connect(function()
+		local fala = trim(campoFala.Text)
+		if fala == "" then
+			mostrarAviso("⚠️ Digite uma fala")
+			return
+		end
+		if enviar(PREFIXO_FALA .. fala) then
+			campoFala.Text = ""
+		end
+	end)
+end
+
+-- 2) Falas
+do
+	local secao = criarSecao("🗣️ Falas", false)
+	for i, fala in ipairs(FALAS) do
+		criarBotaoEnvio(secao, fala, i, function()
+			enviar(PREFIXO_FALA .. fala)
+		end)
+	end
+end
+
+-- 3) Ações / Ataques
+listaDeAcoes(criarSecao("⚔️ Ações / Ataques", false), ACOES)
+
+-- 4) Poderes
+listaDeAcoes(criarSecao("⚡ Poderes", false), PODERES)
+
+-- 5) Movimentos
+listaDeAcoes(criarSecao("🐾 Movimentos", false), MOVIMENTOS)
+
+-- 6) Acabar com a Luta (por último)
+listaDeAcoes(criarSecao("☠️ Acabar com a Luta", false), FINAIS)
+
+--------------------------------------------------------------------
+-- AJUSTE AO MUDAR O TAMANHO DA TELA
+--------------------------------------------------------------------
+local function aoMudarTela()
+	if painel.Visible then
+		ajustarPainel()
+	end
+	local x, y = limitar(botao, botao.AbsolutePosition.X, botao.AbsolutePosition.Y)
+	botao.Position = UDim2.fromOffset(x, y)
+end
+
+local function ligarCamera()
+	local cam = workspace.CurrentCamera
+	if cam then
+		cam:GetPropertyChangedSignal("ViewportSize"):Connect(aoMudarTela)
+	end
+end
+ligarCamera()
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	ligarCamera()
+	aoMudarTela()
+end)
